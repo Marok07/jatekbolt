@@ -19,6 +19,61 @@ app.get('/api/jatekok', async (req,res) =>{
         res.status(500).json({error: "Database Error!"});
     }
 });
+
+app.get('/api/jatekok/szures', async (req,res) =>{
+    const mufaj = req.query.mufaj;
+    if(typeof mufaj !== 'string' || mufaj.trim() === ''){
+        res.status(400).json({ error: 'Bad Request' });
+    }
+    else{
+        try{
+            const [rows] = await db.query('SELECT * FROM jatekok WHERE mufaj = ?', [mufaj.trim()]);
+            res.status(200).json(rows);
+        } catch (error) {
+            console.error('Error filtering games:', error);
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    }
+});
+
+app.get('/api/jatekok/kereses', async (req,res) =>{
+    const { cim, maxAr } = req.query;
+    const conditions = [];
+    const values = [];
+
+    if(cim !== undefined){
+        if(typeof cim !== 'string' || cim.trim() === ''){
+            res.status(400).json({ error: 'Bad Request' });
+            return;
+        }
+        conditions.push('cim LIKE ?');
+        values.push(`%${cim.trim()}%`);
+    }
+
+    if(maxAr !== undefined){
+        const priceLimit = Number(maxAr);
+        if(typeof maxAr !== 'string' || maxAr.trim() === '' || !Number.isFinite(priceLimit) || priceLimit < 0){
+            res.status(400).json({ error: 'Bad Request' });
+            return;
+        }
+        conditions.push('ar <= ?');
+        values.push(priceLimit);
+    }
+
+    if(conditions.length === 0){
+        res.status(400).json({ error: 'Bad Request' });
+        return;
+    }
+
+    try{
+        const [rows] = await db.query(`SELECT * FROM jatekok WHERE ${conditions.join(' AND ')}`, values);
+        res.status(200).json(rows);
+    } catch (error) {
+        console.error('Error searching games:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
 app.get('/api/jatekok/:id', async (req,res) =>{
     try{
         const [rows] = await db.query('SELECT * FROM jatekok WHERE id = ?', [req.params.id]);
