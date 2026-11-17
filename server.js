@@ -77,17 +77,14 @@ app.get('/api/jatekok/kereses', async (req,res) =>{
 app.get('/api/jatekok/:id', async (req,res) =>{
     try{
         const [rows] = await db.query('SELECT * FROM jatekok WHERE id = ?', [req.params.id]);
-        res.status(200).json(rows);
-    if (rows.length === 0) {
-        res.status(404).json({ error: 'Game not found' });
-    } else {
-        res.json(rows[0]);
-    }
+        if (rows.length === 0) {
+            return res.status(404).json({ error: 'Game not found' });
+        }
+        res.status(200).json(rows[0]);
     } catch (error) {
-        console.error('Error fetching book:', error);
+        console.error('Error fetching game:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
-
 });
 
 app.get('/api/statisztika', async (req,res) => {
