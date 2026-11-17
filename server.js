@@ -90,6 +90,17 @@ app.get('/api/jatekok/:id', async (req,res) =>{
 
 });
 
+app.get('/api/statisztika', async (req,res) => {
+    try{
+        const [rows] = await db.query('SELECT mufaj, COUNT(*) AS "darabszam", ROUND(AVG(ar),0) AS "atlag_ar" FROM jatekok GROUP BY mufaj ORDER BY COUNT(*) DESC');
+        res.status(200).json(rows);
+    }
+    catch(error){
+        console.log(error);
+        res.status(500).json({error: "Database Error!"});
+    }
+})
+
 app.listen(PORT, () => {
     console.log(`Server is running on https://localhost:${PORT}`)
 })
